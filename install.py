@@ -2,6 +2,8 @@
 
 import subprocess
 import os
+import shutil
+import getpass
 
 MUTT_CONFIG_DIRECTORY = os.path.expanduser("~/.config/mutt")
 DEPENDENCIES = [
@@ -30,9 +32,28 @@ def setup_mutt_directory():
 
 def setup_default_muttrc():
     muttrc_path = os.path.join(MUTT_CONFIG_DIRECTORY, ".muttrc")
-    print(muttrc_path)
-    with open(muttrc_path, "w") as muttrc_file:
-        muttrc_file.write("# Add your neomutt configuration here")
+    base_muttrc_path = os.path.join(os.getcwd(), "./config/.muttrc")
+    muttrc_path = os.path.join(MUTT_CONFIG_DIRECTORY, ".muttrc")
+    shutil.copyfile(base_muttrc_path, muttrc_path)
+
+    with open(base_muttrc_path, "r") as base, open(muttrc_path, "w") as updated:
+        print("\nPlease enter your proton bridge credentials.")
+        print("You can find them at https://protonmail.com/bridge/install\n")
+        realname = input("Full name: ")
+        email = input("Email address: ")
+        password = getpass.getpass("Proton bridge password: ")
+        smtp_port = input("Proton bridge smtp port (default 1025): ") or 1025
+        smtp_url = f"smtp://{email}:{password}@localhost:{smtp_port}"
+
+        updated.write(f'set from = "{email}"\n')
+        updated.write(f'set realname = "{realname}"\n')
+        updated.write(f'set imap_user = "{email}"\n')
+        updated.write(f'set imap_pass = "{password}"\n')
+        updated.write(f'set smtp_url = "{smtp_url}"\n')
+
+        updated.write(base.read())
+
+    print("The '.muttrc' file has been created successfully.")
 
 
 def install_package(package):
