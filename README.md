@@ -2,6 +2,8 @@
 
 ## About
 
+![image](https://github.com/radleylewis/protonmutt/assets/40852773/77d14a3a-64dd-4d04-b0a9-f64da827cafa)
+
 This python script automatically configures your `neomutt` for use with [Protonmail](https://proton.me/mail) on Arch systems.
 
 ## Instructions
