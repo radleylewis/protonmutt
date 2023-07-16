@@ -28,11 +28,15 @@ cd protonmutt
 - Protonmail specific configurations are dynamically generated and encrypted with `gpg` and then saved to the `protonmail.gpg`
 - All config files are saved to `~/.mutt/`
 
+## Issues and Bugs
+
+I have only used this on one of my machines which is running Manjaro Linux. If you get it working on other distributions, please make a pull request!
+
 ## Resources
 
 The following resources helped in the creation of this script and may be a useful reference:
 
-[mutt-wizard](https://muttwizard.com) - Muttwizard is a tool that automatically sets up a neomutt-based minimal email system.
+[mutt-wizard](https://muttwizard.com) - Muttwizard is a tool that automatically sets up a neomutt-based minimal email system.  
 [Setting up the Mutt mail client with Protonmail](https://brian-thompson.medium.com/setting-up-the-mutt-mail-client-with-protonmail-49c042486b3) - a helpful article on getting up and running with neomutt for Protonmail
 
 ## License
