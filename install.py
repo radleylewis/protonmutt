@@ -61,7 +61,7 @@ class ProtonMutt:
             print("The './mutt' directory has been created successfully.")
 
     def get_user_info(self) -> None:
-        print("\nPlease enter your proton bridge protonmail.\n")
+        print("\nPlease enter your proton bridge credentials.\n")
         self.user_email = input("Email address: ")
         self.real_name = input("Full name: ")
         self.imap_port = input("Proton bridge imap port (defaults to 1143): ") or 1143
@@ -112,7 +112,6 @@ class ProtonMutt:
 
     def sign_protonmail(self) -> None:
         os.seteuid(os.getuid())  # Temporarily change the euid to effective user ID
-
         subprocess.run(
             ["gpg", "--sign", "./tmp/protonmail"], capture_output=True, text=True
         )
