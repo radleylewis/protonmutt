@@ -1,3 +1,0 @@
-# Ensure TLS is enforced
-set ssl_starttls = yes
-set ssl_force_tls = yes
