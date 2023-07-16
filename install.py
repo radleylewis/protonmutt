@@ -10,6 +10,14 @@ MUTT_CONFIG_DIRECTORY = os.path.expanduser("~/.mutt")
 REQUIRED_DEPENDENCIES = {"neomutt"}
 
 
+class GPGKeyNotSetUpException(Exception):
+    pass
+
+
+class DependencyNotInstalledException(Exception):
+    pass
+
+
 class ProtonMutt:
     user_name: str
     user_email: str
@@ -39,35 +47,42 @@ class ProtonMutt:
     def check_dependencies(self) -> None:
         for package in REQUIRED_DEPENDENCIES:
             if not is_installed(package):
-                print(f"Installing {package}...")
-                subprocess.run(["sudo", "pacman", "-Syu", package], check=True)
+                raise DependencyNotInstalledException(package)
             else:
-                print(f"{package} is already installed. Skipping...")
+                print(f"[INFO] {package} is confirmed as installed.")
+        print("[INFO] All dependencies are installed.")
 
     def create_tmp_directory(self) -> None:
         if os.path.exists("./tmp"):
             shutil.rmtree("./tmp")
         else:
             os.makedirs("./tmp")
+        print("[INFO] The './tmp' directory has been created successfully.")
 
     def create_mutt_directories(self) -> None:
         if os.path.exists(MUTT_CONFIG_DIRECTORY):
-            text = "The '.mutt' dir already exists. Do you want to proceed? (y/N): "
+            text = "[INPUT] '~/.mutt' dir already exists. Proceed anyway? (y/N): "
             if input(text).lower() not in ["y", "yes"]:
                 raise Exception("User canceled the process.")
         else:
             os.makedirs(MUTT_CONFIG_DIRECTORY)
-            os.makedirs(MUTT_CONFIG_DIRECTORY + "/bodies")
-            print("The './mutt' directory has been created successfully.")
+        if not os.path.exists(os.path.join(MUTT_CONFIG_DIRECTORY, "cache")):
+            os.makedirs(os.path.join(MUTT_CONFIG_DIRECTORY, "cache"))
+        if not os.path.exists(os.path.join(MUTT_CONFIG_DIRECTORY, "cache/bodies")):
+            os.makedirs(os.path.join(MUTT_CONFIG_DIRECTORY, "cache/bodies"))
+        print("[INFO] required ~/.mutt directories have been created successfully.")
 
     def get_user_info(self) -> None:
-        print("\nPlease enter your proton bridge credentials.\n")
-        self.user_email = input("Email address: ")
-        self.real_name = input("Full name: ")
-        self.imap_port = input("Proton bridge imap port (defaults to 1143): ") or 1143
-        self.smtp_port = input("Proton bridge smtp port (defaults to 1025): ") or 1025
-        self.imap_pass = getpass("Proton imap bridge password: ")
-        self.smtp_pass = getpass("Proton smtp bridge password: ")
+        print("[INPUT] Please enter your protonmail credentials.")
+        self.user_email = input("[INPUT] Email address: ")
+        self.real_name = input("[INPUT] Full name: ")
+        self.imap_pass = getpass("[INPUT] Proton imap bridge password: ")
+        self.smtp_pass = getpass("[INPUT] Proton smtp bridge password: ")
+        if imap_port := input("[INPUT] Proton bridge imap port (defaults to 1143): "):
+            self.imap_port = imap_port
+        if smtp_port := input("[INPUT] Proton bridge smtp port (defaults to 1025): "):
+            self.smtp_port = smtp_port
+        print("[INFO] protonmail credentials have been collected.")
 
     def create_muttrc(self) -> None:
         muttrc_path = os.path.join(os.getcwd(), "./tmp/muttrc")
@@ -83,6 +98,7 @@ class ProtonMutt:
             muttrc.write("source muttrc.general_settings\n")
             muttrc.write("source muttrc.key_bindings\n")
             muttrc.write("source muttrc.colour_scheme\n")
+        print("[INFO] The muttrc file has been created successfully.")
 
     def setup_protonmail(self) -> None:
         protonmail_path = os.path.join(os.getcwd(), "./tmp/protonmail")
@@ -109,13 +125,17 @@ class ProtonMutt:
             protonmail.write(f'set realname = "{self.real_name}"\n')
             protonmail.write("set use_from = yes\n")
             protonmail.write("unset use_domain\n")
+        print("[INFO] The protonmail file has been created successfully.")
 
     def sign_protonmail(self) -> None:
         os.seteuid(os.getuid())  # Temporarily change the euid to effective user ID
-        subprocess.run(
-            ["gpg", "--sign", "./tmp/protonmail"], capture_output=True, text=True
-        )
+        sign_command = ["gpg", "--sign", "./tmp/protonmail"]
+        result = subprocess.run(sign_command, capture_output=True, text=True)
         os.seteuid(os.geteuid())  # Restore the effective user ID
+        if result.returncode == 0:
+            print("[INFO] protonmail file signed successfully")
+        else:
+            raise GPGKeyNotSetUpException()
 
     def setup_neomutt(self) -> None:
         self._move_file("tmp", "muttrc")
@@ -125,9 +145,11 @@ class ProtonMutt:
         self._copy_file("config", "muttrc.key_bindings")
         self._copy_file("config", "muttrc.general_settings")
         self._copy_file("config", "mailcap")
+        print("[INFO] success setting neomutt configuration files to the ~/.mutt dir.")
 
     def cleanup(self) -> None:
         shutil.rmtree(os.path.join(os.getcwd(), "./tmp"))
+        print("[INFO] temporary files have been removed.")
 
 
 def is_installed(package):
@@ -139,13 +161,23 @@ def is_installed(package):
 
 
 if __name__ == "__main__":
-    proton_mutt = ProtonMutt()
-    proton_mutt.check_dependencies()
-    proton_mutt.create_tmp_directory()
-    proton_mutt.create_mutt_directories()
-    proton_mutt.get_user_info()
-    proton_mutt.create_muttrc()
-    proton_mutt.setup_protonmail()
-    proton_mutt.sign_protonmail()
-    proton_mutt.setup_neomutt()
-    proton_mutt.cleanup()
+    try:
+        proton_mutt = ProtonMutt()
+        proton_mutt.check_dependencies()
+        proton_mutt.create_tmp_directory()
+        proton_mutt.create_mutt_directories()
+        proton_mutt.get_user_info()
+        proton_mutt.create_muttrc()
+        proton_mutt.setup_protonmail()
+        proton_mutt.sign_protonmail()
+        proton_mutt.setup_neomutt()
+        proton_mutt.cleanup()
+        print("[INFO] protonmutt script has run successfully. exiting...")
+    except GPGKeyNotSetUpException:
+        print("[ERROR] did you set up your gpg key?")
+        print("[INFO] run the command: gpg --full-generate-key")
+    except DependencyNotInstalledException as package:
+        print(f"[ERROR] required package '{package}' is not installed")
+        print(f"[INFO] install it with: sudo pacman -S {package}")
+    except KeyboardInterrupt:
+        print("[INFO] user exited")
