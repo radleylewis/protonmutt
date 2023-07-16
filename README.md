@@ -23,7 +23,8 @@ cd protonmutt
 - You can adjust the colour scheme in the `muttrc.colour_scheme` file in the config directory
 - Keybindings can be viewed/changed in the `muttrc.key_bindings` file in the config directory
 - Other settings can be found in the `muttrc.general_settings` fil in the config directory
-- Protonmail specific configurations are dynamically generated and encrypted with `gpg`
+- Protonmail specific configurations are dynamically generated and encrypted with `gpg` and then saved to the `protonmail.gpg`
+- All config files are saved to `~/.mutt/`
 
 ## Resources
 
