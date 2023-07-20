@@ -39,6 +39,7 @@ The following resources helped in the creation of this script and may be a usefu
 [mutt-wizard](https://muttwizard.com) - Muttwizard is a tool that automatically sets up a neomutt-based minimal email system.  
 [Setting up the Mutt mail client with Protonmail](https://brian-thompson.medium.com/setting-up-the-mutt-mail-client-with-protonmail-49c042486b3) - a helpful article on getting up and running with neomutt for Protonmail  
 [Using mutt, ProtonMail Bridge, and isync for email on Linux](https://kaythomas.dev/posts/mutt-protonmail-bridge.html) - a helpful article on setting up isync with protonmail and mutt  
+[Mutt Cheat Sheet](https://sheet.shiar.nl/mutt)  
 
 ## License
 
